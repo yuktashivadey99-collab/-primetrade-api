@@ -1,8 +1,10 @@
 node_modules/
 *.db
 *.sqlite
+*.db-shm
+*.db-wal
 .env
-database/*.db
+database/
 npm-debug.log*
 .DS_Store
 Thumbs.db
