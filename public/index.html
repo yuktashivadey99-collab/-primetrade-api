@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrimeTrade API – Dashboard</title>
+  <meta name="description" content="PrimeTrade.ai Task Management Dashboard – JWT authenticated, role-based access control." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ═══════════════════ AUTH SCREEN ═══════════════════ -->
+<div id="auth-screen" class="screen active">
+  <div class="auth-bg">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+  <div class="auth-container">
+    <div class="brand">
+      <div class="brand-logo">PT</div>
+      <div class="brand-text">
+        <h1>PrimeTrade<span>.ai</span></h1>
+        <p>Task Management Platform</p>
+      </div>
+    </div>
+
+    <div class="tab-switcher">
+      <button id="tab-login" class="tab-btn active" onclick="switchTab('login')">Sign In</button>
+      <button id="tab-register" class="tab-btn" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+      <div class="form-group">
+        <label for="login-email">Email</label>
+        <input id="login-email" type="email" placeholder="you@example.com" required autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" placeholder="••••••••" required />
+      </div>
+      <div id="login-error" class="alert alert-error hidden"></div>
+      <button type="submit" id="login-btn" class="btn btn-primary btn-full">
+        <span class="btn-text">Sign In</span>
+        <span class="btn-loader hidden"></span>
+      </button>
+      <p class="hint">Default admin: <code>admin@primetrade.ai</code> / <code>Admin@1234</code></p>
+    </form>
+
+    <!-- Register Form -->
+    <form id="register-form" class="auth-form hidden" onsubmit="handleRegister(event)">
+      <div class="form-group">
+        <label for="reg-username">Username</label>
+        <input id="reg-username" type="text" placeholder="yourname" required minlength="3" />
+      </div>
+      <div class="form-group">
+        <label for="reg-email">Email</label>
+        <input id="reg-email" type="email" placeholder="you@example.com" required />
+      </div>
+      <div class="form-group">
+        <label for="reg-password">Password</label>
+        <input id="reg-password" type="password" placeholder="Min 6 chars, upper+lower+number" required />
+      </div>
+      <div id="reg-error" class="alert alert-error hidden"></div>
+      <div id="reg-success" class="alert alert-success hidden"></div>
+      <button type="submit" id="reg-btn" class="btn btn-primary btn-full">
+        <span class="btn-text">Create Account</span>
+        <span class="btn-loader hidden"></span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ═══════════════════ DASHBOARD ═══════════════════ -->
+<div id="dashboard-screen" class="screen hidden">
+
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo sm">PT</div>
+      <span>PrimeTrade</span>
+    </div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" onclick="showPanel('tasks')" id="nav-tasks">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        Tasks
+      </button>
+      <button class="nav-item" onclick="showPanel('admin')" id="nav-admin" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        Users
+      </button>
+      <a class="nav-item" href="/api-docs" target="_blank">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+        API Docs
+      </a>
+    </nav>
+    <div class="sidebar-user" id="sidebar-user-info">
+      <div class="user-avatar" id="user-avatar-initials">?</div>
+      <div class="user-details">
+        <span id="sidebar-username">-</span>
+        <span id="sidebar-role" class="role-badge">-</span>
+      </div>
+      <button class="logout-btn" onclick="logout()" title="Logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16,17 21,12 16,7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- TASKS PANEL -->
+    <div id="panel-tasks" class="panel active">
+      <div class="panel-header">
+        <div>
+          <h2>My Tasks</h2>
+          <p id="tasks-subtitle">Manage your task list</p>
+        </div>
+        <button class="btn btn-primary" onclick="openTaskModal()">+ New Task</button>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-row" id="task-stats-row" style="display:none">
+        <div class="stat-card"><div class="stat-value" id="stat-total">0</div><div class="stat-label">Total</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-pending">0</div><div class="stat-label">Pending</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-progress">0</div><div class="stat-label">In Progress</div></div>
+        <div class="stat-card"><div class="stat-value" id="stat-completed">0</div><div class="stat-label">Completed</div></div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-bar">
+        <input id="search-tasks" type="text" placeholder="🔍 Search tasks..." oninput="debouncedFetch()" />
+        <select id="filter-status" onchange="fetchTasks()">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+        <select id="filter-priority" onchange="fetchTasks()">
+          <option value="">All Priority</option>
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high">High</option>
+        </select>
+      </div>
+
+      <div id="tasks-global-msg" class="alert hidden"></div>
+      <div id="tasks-list" class="tasks-grid"></div>
+
+      <div class="pagination" id="tasks-pagination"></div>
+    </div>
+
+    <!-- ADMIN USERS PANEL -->
+    <div id="panel-admin" class="panel hidden">
+      <div class="panel-header">
+        <div>
+          <h2>User Management</h2>
+          <p>Admin – manage all registered users</p>
+        </div>
+      </div>
+      <div id="users-global-msg" class="alert hidden"></div>
+      <div class="table-wrap">
+        <table class="data-table" id="users-table">
+          <thead>
+            <tr>
+              <th>Username</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ═══════════════════ TASK MODAL ═══════════════════ -->
+<div id="task-modal" class="modal-overlay hidden" onclick="closeModalOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">New Task</h3>
+      <button class="modal-close" onclick="closeTaskModal()">✕</button>
+    </div>
+    <form id="task-form" onsubmit="handleTaskSubmit(event)">
+      <div class="form-group">
+        <label>Title *</label>
+        <input id="task-title" type="text" placeholder="Task title" required maxlength="200" />
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <textarea id="task-desc" placeholder="Optional description..." rows="3" maxlength="2000"></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Status</label>
+          <select id="task-status">
+            <option value="pending">Pending</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Priority</label>
+          <select id="task-priority">
+            <option value="low">Low</option>
+            <option value="medium" selected>Medium</option>
+            <option value="high">High</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Due Date</label>
+        <input id="task-due" type="date" />
+      </div>
+      <div id="task-modal-error" class="alert alert-error hidden"></div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeTaskModal()">Cancel</button>
+        <button type="submit" id="task-submit-btn" class="btn btn-primary">
+          <span class="btn-text">Save Task</span>
+          <span class="btn-loader hidden"></span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
